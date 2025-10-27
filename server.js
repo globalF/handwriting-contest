@@ -1,12 +1,14 @@
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
+
 const app = express();
 
-// Serve static files from public folder
+// Serve static files from the "public" folder
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Configure multer for file storage
+// Multer setup for file uploads
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, 'uploads'); // Save files to /uploads folder
@@ -15,19 +17,42 @@ const storage = multer.diskStorage({
     cb(null, Date.now() + '-' + file.originalname);
   }
 });
-const upload = multer({ storage: storage });
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 20 * 1024 * 1024 } // 20MB max
+});
 
-// Handle form submission
+// Upload route
 app.post('/upload', upload.fields([
   { name: 'handwriting', maxCount: 1 },
   { name: 'video', maxCount: 1 }
 ]), (req, res) => {
-  console.log('Files received:', req.files);
-  console.log('Form data:', req.body);
+  const submissionsPath = path.join(__dirname, 'submissions.json');
+
+  // Load existing submissions
+  let submissions = [];
+  if (fs.existsSync(submissionsPath)) {
+    submissions = JSON.parse(fs.readFileSync(submissionsPath));
+  }
+
+  // Add new submission
+  submissions.push({
+    id: Date.now(),
+    name: req.body.name,
+    email: req.body.email,
+    handwriting: req.files.handwriting[0].filename,
+    video: req.files.video[0].filename,
+    status: 'pending',
+    votes: 0
+  });
+
+  // Save back to file
+  fs.writeFileSync(submissionsPath, JSON.stringify(submissions, null, 2));
+
   res.redirect('/success.html');
 });
 
-// Start server
+// Start the server
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

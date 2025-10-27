@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Upload Submission – Handwriting Contest</title>
+  <style>
+    body { font-family: Arial; padding: 40px; background: #f4f4f4; }
+    form { background: white; padding: 20px; max-width: 500px; margin: auto; border-radius: 8px; }
+    input, button { width: 100%; padding: 10px; margin: 10px 0; }
+    h2 { text-align: center; }
+  </style>
+</head>
+<body>
+  <form action="https://formspree.io/f/movpjdrq" method="POST" enctype="multipart/form-data">
+    <h2>Upload Your Submission</h2>
+    <input type="text" name="name" placeholder="Full Name" required />
+    <input type="email" name="email" placeholder="Email Address" required />
+    <input type="file" name="handwriting" accept="image/*" required />
+    <input type="file" name="video" accept="video/*" required />
+    <button type="submit">Submit Entry</button>
+  </form>
+</body>
+</html>

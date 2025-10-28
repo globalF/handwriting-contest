@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Supporters</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
+    }
+    h2 {
+      margin-bottom: 10px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px;
+      text-align: left;
+    }
+    th {
+      background: #f5f5f5;
+    }
+  </style>
+</head>
+<body>
+  <h2>Supporters</h2>
+  <table id="voterTable">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Votes</th>
+        <th>Message</th>
+        <th>Time</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const contestantId = new URLSearchParams(window.location.search).get('id');
+
+    fetch(`/votes/${contestantId}`)
+      .then(res => res.json())
+      .then(data => {
+        const tbody = document.querySelector('#voterTable tbody');
+        data.forEach(vote => {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${vote.voterName}</td>
+            <td>${vote.voteCount}</td>
+            <td>${vote.message}</td>
+            <td>${vote.timestamp}</td>
+          `;
+          tbody.appendChild(row);
+        });
+      });
+  </script>
+</body>
+</html>

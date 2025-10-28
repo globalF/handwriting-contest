@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vote for Contestant</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      max-width: 500px;
+      margin: auto;
+    }
+    input, textarea, button {
+      display: block;
+      width: 100%;
+      margin-bottom: 15px;
+      padding: 10px;
+      font-size: 16px;
+    }
+    .vote-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .vote-controls button {
+      width: 40px;
+      height: 40px;
+      font-size: 20px;
+    }
+    .price {
+      font-weight: bold;
+      font-size: 18px;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Vote for Contestant</h2>
+
+  <form id="voteForm">
+    <input type="text" name="voterName" placeholder="Your Name" required />
+    <textarea name="message" placeholder="Message of encouragement" rows="3"></textarea>
+
+    <div class="vote-controls">
+      <button type="button" onclick="changeVotes(-1)">➖</button>
+      <span id="voteCount">1</span>
+      <button type="button" onclick="changeVotes(1)">➕</button>
+    </div>
+
+    <div class="price">Total: ₦<span id="price">100</span></div>
+
+    <button type="submit">Pay and Vote</button>
+  </form>
+
+  <script>
+    let voteCount = 1;
+    const voteCountEl = document.getElementById('voteCount');
+    const priceEl = document.getElementById('price');
+
+    function changeVotes(change) {
+      voteCount = Math.max(1, voteCount + change);
+      voteCountEl.textContent = voteCount;
+      priceEl.textContent = voteCount * 100;
+    }
+
+    document.getElementById('voteForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const voterName = e.target.voterName.value;
+      const message = e.target.message.value;
+      const contestantId = new URLSearchParams(window.location.search).get('id');
+
+      // TODO: Replace this with real payment integration
+      alert(`Simulating payment of ₦${voteCount * 100}...`);
+
+      // After payment, send vote to server
+      const res = await fetch('/submit-vote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ voterName, message, voteCount, contestantId })
+      });
+
+      if (res.ok) {
+        alert('✅ Thank you for voting!');
+        window.location.href = `/feed.html`;
+      } else {
+        alert('❌ Something went wrong. Please try again.');
+      }
+    });
+  </script>
+</body>
+</html>

@@ -15,31 +15,39 @@
   <div id="feed"></div>
 
   <script>
-    fetch('/submissions')
-      .then(res => res.json())
-      .then(data => {
-        const feed = document.getElementById('feed');
-        data.filter(entry => entry.status === 'approved').forEach(entry => {
-          const div = document.createElement('div');
-          div.className = 'entry';
-          div.innerHTML = `
-            <h3>${entry.name}</h3>
-            <img src="/uploads/${entry.handwriting}" alt="Handwriting" />
-            <video src="/uploads/${entry.video}" controls></video>
-            <p>Votes: <span id="votes-${entry.id}">${entry.votes}</span></p>
-            <button onclick="vote(${entry.id})">Vote</button>
-          `;
-          feed.appendChild(div);
-        });
-      });
+fetch('/submissions')
+  .then(res => res.json())
+  .then(data => {
+    const feed = document.getElementById('feed');
+    data.forEach((entry, index) => {
+      const card = document.createElement('div');
+      card.className = 'entry-card';
+      card.innerHTML = `
+        <h3>#${index + 1} – ${entry.name}</h3>
+        <p><strong>Votes:</strong> ${entry.votes}</p>
+        <img src="/uploads/${entry.handwriting}" width="100%" />
+        <video src="/uploads/${entry.video}" controls width="100%"></video>
+        <div class="actions">
+          <a href="/vote.html?id=${entry.id}">Vote</a>
+          <a href="/voters.html?id=${entry.id}">View Voters</a>
+          <button onclick="shareEntry(${entry.id}, '${entry.name}')">Share</button>
+        </div>
+      `;
+      feed.appendChild(card);
+    });
+  });
 
-    function vote(id) {
-      fetch('/vote/' + id, { method: 'POST' })
-        .then(() => {
-          const count = document.getElementById('votes-' + id);
-          count.textContent = parseInt(count.textContent) + 1;
-        });
-    }
-  </script>
+function shareEntry(id, name) {
+  const url = `https://handwriting-contest.onrender.com/vote.html?id=${id}`;
+  const text = `Support ${name} in the handwriting contest! Cast your vote here: ${url}`;
+
+  if (navigator.share) {
+    navigator.share({ title: 'Vote Now', text, url });
+  } else {
+    navigator.clipboard.writeText(text);
+    alert('✅ Link copied! Share it with your friends.');
+  }
+}
+</script>
 </body>
 </html>

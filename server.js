@@ -7,7 +7,9 @@ const axios = require('axios');
 const app = express();
 const db = new Database('submissions.db');
 
-// Serve static files
+// Middleware
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
@@ -18,7 +20,7 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage, limits: { fileSize: 20 * 1024 * 1024 } });
 
-// Ensure table exists
+// Ensure tables exist
 db.exec(`
   CREATE TABLE IF NOT EXISTS submissions (
     id INTEGER PRIMARY KEY,
@@ -28,7 +30,18 @@ db.exec(`
     video TEXT,
     status TEXT,
     votes INTEGER
-  )
+  );
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS votes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    voterName TEXT,
+    contestantId INTEGER,
+    voteCount INTEGER,
+    message TEXT,
+    timestamp TEXT
+  );
 `);
 
 // Send email via Resend
@@ -40,7 +53,7 @@ function sendApprovalEmail(name, email) {
     text: `Hi ${name},\n\nYour handwriting contest entry has been approved and is now live on the feed!\n\nView it here: https://handwriting-contest.onrender.com/feed.html\n\nGood luck!\n\n– Handwriting Contest Team`
   }, {
     headers: {
-      Authorization: 're_HkVXHiWz_6hpt9TyCexmMFHurd641AkET' // ← Replace with your actual Resend API key
+      Authorization: 're_HkVXHiWz_6hpt9TyCexmMFHurd641AkET' // Replace with your actual Resend API key
     }
   }).then(res => {
     console.log('✅ Email sent:', res.data);
@@ -67,9 +80,13 @@ app.post('/upload', upload.fields([
   res.redirect('/success.html');
 });
 
-// Get all submissions
+// Get all submissions (sorted by votes)
 app.get('/submissions', (req, res) => {
-  const rows = db.prepare('SELECT * FROM submissions').all();
+  const rows = db.prepare(`
+    SELECT * FROM submissions
+    WHERE status = 'approved'
+    ORDER BY votes DESC
+  `).all();
   res.json(rows);
 });
 
@@ -84,15 +101,44 @@ app.post('/approve/:id', (req, res) => {
   res.sendStatus(200);
 });
 
-// Vote for a submission
-app.post('/vote/:id', (req, res) => {
-  const update = db.prepare('UPDATE submissions SET votes = votes + 1 WHERE id = ?');
-  update.run(req.params.id);
-  res.sendStatus(200);
+// Submit paid vote with name, message, and count
+app.post('/submit-vote', (req, res) => {
+  const { voterName, message, voteCount, contestantId } = req.body;
+
+  try {
+    const insertVote = db.prepare(`
+      INSERT INTO votes (voterName, contestantId, voteCount, message, timestamp)
+      VALUES (?, ?, ?, ?, datetime('now'))
+    `);
+    insertVote.run(voterName, contestantId, voteCount, message);
+
+    const updateVotes = db.prepare(`
+      UPDATE submissions
+      SET votes = votes + ?
+      WHERE id = ?
+    `);
+    updateVotes.run(voteCount, contestantId);
+
+    res.status(200).send({ success: true });
+  } catch (err) {
+    console.error('❌ Error saving vote:', err);
+    res.status(500).send({ error: 'Failed to save vote' });
+  }
 });
 
 // Start server
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
+});
+
+app.get('/votes/:id', (req, res) => {
+  const stmt = db.prepare(`
+    SELECT voterName, voteCount, message, timestamp
+    FROM votes
+    WHERE contestantId = ?
+    ORDER BY timestamp DESC
+  `);
+  const votes = stmt.all(req.params.id);
+  res.json(votes);
 });

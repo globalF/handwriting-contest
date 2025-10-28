@@ -2,7 +2,7 @@ const express = require('express');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const nodemailer = require('nodemailer');
+const axios = require('axios');
 
 const app = express();
 
@@ -26,14 +26,23 @@ const upload = multer({
   limits: { fileSize: 20 * 1024 * 1024 } // 20MB max
 });
 
-// Email setup
-const transporter = nodemailer.createTransport({
-  service: 'gmail',
-  auth: {
-    user: 'globalfoundationoutreach@gmail.com',
-    pass: 'cykk suyh usag kehu' // ← Replace with your actual app password
-  }
-});
+// Send email via Resend
+function sendApprovalEmail(name, email) {
+  axios.post('https://api.resend.com/emails', {
+    from: 'Handwriting Contest <noreply@globalfoundationoutreach.com>',
+    to: email,
+    subject: 'Your submission is live!',
+    text: `Hi ${name},\n\nYour handwriting contest entry has been approved and is now live on the feed!\n\nView it here: https://handwriting-contest.onrender.com/feed.html\n\nGood luck!\n\n– Handwriting Contest Team`
+  }, {
+    headers: {
+      Authorization: 're_HkVXHiWz_6hpt9TyCexmMFHurd641AkET' // ← Replace with your actual Resend API key
+    }
+  }).then(res => {
+    console.log('✅ Email sent:', res.data);
+  }).catch(err => {
+    console.error('❌ Email failed:', err.message);
+  });
+}
 
 // Upload route
 app.post('/upload', upload.fields([
@@ -84,21 +93,9 @@ app.post('/approve/:id', (req, res) => {
   fs.writeFileSync(submissionsPath, JSON.stringify(data, null, 2));
 
   const approvedEntry = data.find(entry => entry.id == req.params.id);
-
-  const mailOptions = {
-    from: 'globalfoundationoutreach@gmail.com',
-    to: approvedEntry.email,
-    subject: 'Your submission is live!',
-    text: `Hi ${approvedEntry.name},\n\nYour handwriting contest entry has been approved and is now live on the feed!\n\nView it here: https://handwriting-contest.onrender.com/feed.html\n\nGood luck!\n\n– Handwriting Contest Team`
-  };
-
-  transporter.sendMail(mailOptions, (error, info) => {
-    if (error) {
-      console.error('❌ Email failed:', error);
-    } else {
-      console.log('✅ Email sent:', info.response);
-    }
-  });
+  if (approvedEntry) {
+    sendApprovalEmail(approvedEntry.name, approvedEntry.email);
+  }
 
   res.sendStatus(200);
 });

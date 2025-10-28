@@ -1,30 +1,35 @@
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs');
+const Database = require('better-sqlite3');
 const axios = require('axios');
 
 const app = express();
+const db = new Database('submissions.db');
 
-// Serve static files from "public" folder
+// Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
-
-// Serve uploaded files from "uploads" folder
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Multer setup for file uploads
+// Multer setup
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads');
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + '-' + file.originalname);
-  }
+  destination: (req, file, cb) => cb(null, 'uploads'),
+  filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname)
 });
-const upload = multer({
-  storage: storage,
-  limits: { fileSize: 20 * 1024 * 1024 } // 20MB max
-});
+const upload = multer({ storage, limits: { fileSize: 20 * 1024 * 1024 } });
+
+// Ensure table exists
+db.exec(`
+  CREATE TABLE IF NOT EXISTS submissions (
+    id INTEGER PRIMARY KEY,
+    name TEXT,
+    email TEXT,
+    handwriting TEXT,
+    video TEXT,
+    status TEXT,
+    votes INTEGER
+  )
+`);
 
 // Send email via Resend
 function sendApprovalEmail(name, email) {
@@ -49,73 +54,44 @@ app.post('/upload', upload.fields([
   { name: 'handwriting', maxCount: 1 },
   { name: 'video', maxCount: 1 }
 ]), (req, res) => {
-  const submissionsPath = path.join(__dirname, 'submissions.json');
-
-  let submissions = [];
-  if (fs.existsSync(submissionsPath)) {
-    submissions = JSON.parse(fs.readFileSync(submissionsPath));
-  }
-
-  submissions.push({
-    id: Date.now(),
-    name: req.body.name,
-    email: req.body.email,
-    handwriting: req.files.handwriting[0].filename,
-    video: req.files.video[0].filename,
-    status: 'pending',
-    votes: 0
-  });
-
-  fs.writeFileSync(submissionsPath, JSON.stringify(submissions, null, 2));
+  const stmt = db.prepare(`
+    INSERT INTO submissions (name, email, handwriting, video, status, votes)
+    VALUES (?, ?, ?, ?, 'pending', 0)
+  `);
+  stmt.run(
+    req.body.name,
+    req.body.email,
+    req.files.handwriting[0].filename,
+    req.files.video[0].filename
+  );
   res.redirect('/success.html');
 });
 
 // Get all submissions
 app.get('/submissions', (req, res) => {
-  const submissionsPath = path.join(__dirname, 'submissions.json');
-  const data = fs.existsSync(submissionsPath)
-    ? JSON.parse(fs.readFileSync(submissionsPath))
-    : [];
-  res.json(data);
+  const rows = db.prepare('SELECT * FROM submissions').all();
+  res.json(rows);
 });
 
-// Approve a submission and send email
+// Approve a submission
 app.post('/approve/:id', (req, res) => {
-  const submissionsPath = path.join(__dirname, 'submissions.json');
-  let data = fs.existsSync(submissionsPath)
-    ? JSON.parse(fs.readFileSync(submissionsPath))
-    : [];
+  const update = db.prepare('UPDATE submissions SET status = ? WHERE id = ?');
+  update.run('approved', req.params.id);
 
-  data = data.map(entry =>
-    entry.id == req.params.id ? { ...entry, status: 'approved' } : entry
-  );
-
-  fs.writeFileSync(submissionsPath, JSON.stringify(data, null, 2));
-
-  const approvedEntry = data.find(entry => entry.id == req.params.id);
-  if (approvedEntry) {
-    sendApprovalEmail(approvedEntry.name, approvedEntry.email);
-  }
+  const entry = db.prepare('SELECT * FROM submissions WHERE id = ?').get(req.params.id);
+  if (entry) sendApprovalEmail(entry.name, entry.email);
 
   res.sendStatus(200);
 });
 
 // Vote for a submission
 app.post('/vote/:id', (req, res) => {
-  const submissionsPath = path.join(__dirname, 'submissions.json');
-  let data = fs.existsSync(submissionsPath)
-    ? JSON.parse(fs.readFileSync(submissionsPath))
-    : [];
-
-  data = data.map(entry =>
-    entry.id == req.params.id ? { ...entry, votes: entry.votes + 1 } : entry
-  );
-
-  fs.writeFileSync(submissionsPath, JSON.stringify(data, null, 2));
+  const update = db.prepare('UPDATE submissions SET votes = votes + 1 WHERE id = ?');
+  update.run(req.params.id);
   res.sendStatus(200);
 });
 
-// Start the server
+// Start server
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

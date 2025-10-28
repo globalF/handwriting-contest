@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Contest Feed – Vote Now</title>
+  <style>
+    body { font-family: Arial; padding: 40px; background: #f9f9f9; }
+    .entry { margin-bottom: 30px; padding: 20px; background: white; border: 1px solid #ccc; }
+    img, video { max-width: 100%; height: auto; display: block; margin-bottom: 10px; }
+    button { padding: 6px 12px; }
+  </style>
+</head>
+<body>
+  <h2>Vote for Your Favorite Entry</h2>
+  <div id="feed"></div>
+
+  <script>
+    fetch('/submissions')
+      .then(res => res.json())
+      .then(data => {
+        const feed = document.getElementById('feed');
+        data.filter(entry => entry.status === 'approved').forEach(entry => {
+          const div = document.createElement('div');
+          div.className = 'entry';
+          div.innerHTML = `
+            <h3>${entry.name}</h3>
+            <img src="/uploads/${entry.handwriting}" alt="Handwriting" />
+            <video src="/uploads/${entry.video}" controls></video>
+            <p>Votes: <span id="votes-${entry.id}">${entry.votes}</span></p>
+            <button onclick="vote(${entry.id})">Vote</button>
+          `;
+          feed.appendChild(div);
+        });
+      });
+
+    function vote(id) {
+      fetch('/vote/' + id, { method: 'POST' })
+        .then(() => {
+          const count = document.getElementById('votes-' + id);
+          count.textContent = parseInt(count.textContent) + 1;
+        });
+    }
+  </script>
+</body>
+</html>

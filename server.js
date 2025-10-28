@@ -28,6 +28,31 @@ app.post('/upload', upload.fields([
   { name: 'video', maxCount: 1 }
 ]), (req, res) => {
   const submissionsPath = path.join(__dirname, 'submissions.json');
+  console.log('✅ Submission saved to submissions.json');
+
+  // Serve submissions to admin
+app.get('/submissions', (req, res) => {
+  const submissionsPath = path.join(__dirname, 'submissions.json');
+  const data = fs.existsSync(submissionsPath)
+    ? JSON.parse(fs.readFileSync(submissionsPath))
+    : [];
+  res.json(data);
+});
+
+// Approve a submission
+app.post('/approve/:id', (req, res) => {
+  const submissionsPath = path.join(__dirname, 'submissions.json');
+  let data = fs.existsSync(submissionsPath)
+    ? JSON.parse(fs.readFileSync(submissionsPath))
+    : [];
+
+  data = data.map(entry =>
+    entry.id == req.params.id ? { ...entry, status: 'approved' } : entry
+  );
+
+  fs.writeFileSync(submissionsPath, JSON.stringify(data, null, 2));
+  res.sendStatus(200);
+});
 
   // Load existing submissions
   let submissions = [];

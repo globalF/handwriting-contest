@@ -7,6 +7,8 @@ const app = express();
 
 // Serve static files from the "public" folder
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 
 // Multer setup for file uploads
 const storage = multer.diskStorage({

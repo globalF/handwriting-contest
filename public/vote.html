@@ -76,11 +76,10 @@
 
       // After payment, send vote to server
       const res = await fetch('/submit-vote', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ voterName, message, voteCount, contestantId })
-      });
-
+method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ voterName, message, voteCount, contestantId })
+});
       if (res.ok) {
         alert('✅ Thank you for voting!');
         window.location.href = `/feed.html`;

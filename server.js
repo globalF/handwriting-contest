@@ -142,3 +142,4 @@ app.get('/votes/:id', (req, res) => {
   const votes = stmt.all(req.params.id);
   res.json(votes);
 });
+

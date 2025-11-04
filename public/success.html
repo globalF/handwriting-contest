@@ -1,7 +1,71 @@
 <!DOCTYPE html>
-<html>
-<head><title>Success</title></head>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Submission Successful</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background-image: url('images/hero-bg.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .success-box {
+      background: rgba(0, 0, 0, 0.75);
+      padding: 40px;
+      border-radius: 12px;
+      max-width: 600px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+
+    .success-box h1 {
+      font-size: 32px;
+      margin-bottom: 20px;
+      color: #00ffcc;
+    }
+
+    .success-box p {
+      font-size: 16px;
+      line-height: 1.6;
+      margin-bottom: 30px;
+    }
+
+    .success-box a {
+      display: inline-block;
+      padding: 12px 24px;
+      background: #28a745;
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+      border-radius: 6px;
+      transition: background 0.3s ease;
+    }
+
+    .success-box a:hover {
+      background: #218838;
+    }
+  </style>
+</head>
 <body>
-  <h2>✅ Submission received! Thank you. Your submission is pending approval. Once approved, it will appear on the feed for voting.</h2>
+  <div class="success-box">
+    <h1>🎉 Submission Received!</h1>
+    <p>
+      Thank you for submitting your handwriting entry. Your submission has been received and is currently pending review and approval.<br><br>
+      Once approved, it will appear on the <strong>Community Feed</strong> and you will receive an email notification.<br><br>
+      Approval typically takes between <strong>2 to 24 hours</strong>.
+    </p>
+    <a href="/feed.html">See Feed</a>
+  </div>
 </body>
 </html>

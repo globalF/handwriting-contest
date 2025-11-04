@@ -1,8 +1,129 @@
-<form action="/upload" method="POST" enctype="multipart/form-data">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Upload Your Submission</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
+    }
+    input, textarea, button {
+      display: block;
+      width: 100%;
+      margin-bottom: 15px;
+      padding: 10px;
+      font-size: 16px;
+    }
+    label {
+      font-weight: bold;
+      margin-top: 10px;
+      display: block;
+    }
+    #preview-container {
+      width: 100%;
+      max-height: 500px;
+      overflow: hidden;
+      border: 2px dashed #ccc;
+      margin-bottom: 20px;
+      position: relative;
+    }
+    #preview {
+      max-width: 100%;
+      display: none;
+      cursor: grab;
+    }
+    #a4-frame {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 595px;
+      height: 842px;
+      transform: translate(-50%, -50%);
+      border: 2px solid red;
+      pointer-events: none;
+      box-sizing: border-box;
+    }
+    #handwriting-preview,
+    #video-preview {
+      margin-bottom: 20px;
+      max-width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
   <h2>Upload Your Submission</h2>
-  <input type="text" name="name" placeholder="Full Name" required />
-  <input type="email" name="email" placeholder="Email Address" required />
-  <input type="file" name="handwriting" accept="image/*" required />
-  <input type="file" name="video" accept="video/*" required />
-  <button type="submit">Submit Entry</button>
-</form>
+
+  <form action="/upload" method="POST" enctype="multipart/form-data">
+    <input type="text" name="name" placeholder="Full Name" required />
+    <input type="email" name="email" placeholder="Email Address" required />
+
+    <label>Upload Entry JPG</label>
+    <input type="file" name="handwriting" accept="image/*" onchange="previewHandwriting(this)" required />
+    <img id="handwriting-preview" style="display:none;" />
+
+    <label>Upload Video File</label>
+    <input type="file" name="video" accept="video/*" onchange="previewVideo(this)" required />
+    <video id="video-preview" controls style="display:none;"></video>
+
+    <label>Upload Profile Picture</label>
+    <input type="file" name="profile" accept="image/*" onchange="previewProfile(this)" required />
+
+    <div id="preview-container">
+      <img id="preview" />
+      <div id="a4-frame"></div>
+    </div>
+
+    <button type="submit">Submit Entry</button>
+  </form>
+
+  <script src="https://unpkg.com/@panzoom/panzoom@9.4.0/dist/panzoom.min.js"></script>
+  <script>
+    function previewProfile(input) {
+      const file = input.files[0];
+      if (!file) return;
+
+      const img = document.getElementById('preview');
+      img.src = URL.createObjectURL(file);
+      img.style.display = 'block';
+
+      const check = new Image();
+      check.onload = function() {
+        if (check.width > 595 || check.height > 842) {
+          alert('❌ Image is larger than A4 (595×842 pixels). It will be resized automatically.');
+        }
+      };
+      check.src = img.src;
+
+      Panzoom(img, {
+        maxScale: 5,
+        minScale: 0.5,
+        contain: 'outside'
+      });
+    }
+
+    function previewHandwriting(input) {
+      const file = input.files[0];
+      if (!file) return;
+
+      const img = document.getElementById('handwriting-preview');
+      img.src = URL.createObjectURL(file);
+      img.style.display = 'block';
+    }
+
+    function previewVideo(input) {
+      const file = input.files[0];
+      if (!file) return;
+
+      const video = document.getElementById('video-preview');
+      video.src = URL.createObjectURL(file);
+      video.style.display = 'block';
+    }
+  </script>
+</body>
+</html>

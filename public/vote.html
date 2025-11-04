@@ -6,83 +6,230 @@
   <title>Vote for Contestant</title>
   <style>
     body {
-      font-family: sans-serif;
-      padding: 20px;
+      margin: 0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background-image: url('images/hero-bg.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .vote-box {
+      background: rgba(0, 0, 0, 0.75);
+      padding: 40px 20px;
       max-width: 500px;
-      margin: auto;
-    }
-    input, textarea, button {
-      display: block;
       width: 100%;
-      margin-bottom: 15px;
-      padding: 10px;
-      font-size: 16px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }
+
+    .vote-box h2 {
+      text-align: center;
+      font-size: 28px;
+      margin-bottom: 10px;
+      color: #00ffcc;
+    }
+
+    .contestant-name {
+      text-align: center;
+      font-size: 20px;
+      margin-bottom: 30px;
+      color: #ffcc00;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border-radius: 6px;
+      border: none;
+      font-size: 16px;
+      background: #fff;
+      color: #000;
+    }
+
+    textarea {
+      resize: vertical;
+    }
+
     .vote-controls {
       display: flex;
-      justify-content: space-between;
+      justify-content: center;
       align-items: center;
+      gap: 15px;
+      margin-bottom: 15px;
     }
+
     .vote-controls button {
       width: 40px;
       height: 40px;
       font-size: 20px;
+      background: #ffcc00;
+      color: black;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
     }
-    .price {
-      font-weight: bold;
+
+    .vote-controls button:hover {
+      background: #e6b800;
+    }
+
+    .vote-controls input[type="number"] {
+      width: 60px;
+      text-align: center;
       font-size: 18px;
-      margin-top: 10px;
+      padding: 6px;
+      border-radius: 6px;
+      border: none;
+      background: #fff;
+      color: #000;
+    }
+
+    .price {
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      color: #ffcc00;
+    }
+
+    button[type="submit"] {
+      width: 100%;
+      padding: 12px;
+      background: #28a745;
+      color: white;
+      font-weight: bold;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    button[type="submit"]:hover {
+      background: #218838;
+    }
+
+    .back-link {
+      display: block;
+      text-align: center;
+      margin-top: 25px;
+      color: #ccc;
+      text-decoration: underline;
+    }
+
+    @media (max-width: 600px) {
+      .vote-box {
+        padding: 30px 15px;
+      }
+
+      .vote-controls {
+        gap: 10px;
+      }
     }
   </style>
 </head>
 <body>
-  <h2>Vote for Contestant</h2>
+  <div class="vote-box">
+    <h2>🗳️ Vote for Contestant</h2>
+    <div class="contestant-name" id="contestant-name">Loading...</div>
 
-  <form id="voteForm">
-    <input type="text" name="voterName" placeholder="Your Name" required />
-    <textarea name="message" placeholder="Message of encouragement" rows="3"></textarea>
+    <form id="voteForm">
+      <input type="text" name="voterName" placeholder="Your Name" required />
+      <textarea name="message" placeholder="Message of encouragement" rows="3"></textarea>
 
-    <div class="vote-controls">
-      <button type="button" onclick="changeVotes(-1)">➖</button>
-      <span id="voteCount">1</span>
-      <button type="button" onclick="changeVotes(1)">➕</button>
-    </div>
+      <div class="vote-controls">
+        <button type="button" onclick="changeVotes(-1)">➖</button>
+        <input type="number" id="voteInput" value="0" min="0" oninput="updateVotes()" />
+        <button type="button" onclick="changeVotes(1)">➕</button>
+      </div>
 
-    <div class="price">Total: ₦<span id="price">100</span></div>
+      <div class="price">Total: ₦<span id="price">0</span></div>
 
-    <button type="submit">Pay and Vote</button>
-  </form>
+      <button type="submit">Pay and Vote</button>
+    </form>
 
+    <a class="back-link" id="back-link" href="#">← Back to Feed</a>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <script>
-    let voteCount = 1;
-    const voteCountEl = document.getElementById('voteCount');
+    let voteCount = 0;
+    const voteInput = document.getElementById('voteInput');
     const priceEl = document.getElementById('price');
+    const contestantId = new URLSearchParams(window.location.search).get('id');
+
+    document.getElementById('back-link').href = `/feed.html#entry-${contestantId}`;
 
     function changeVotes(change) {
-      voteCount = Math.max(1, voteCount + change);
-      voteCountEl.textContent = voteCount;
+      voteCount = Math.max(0, voteCount + change);
+      voteInput.value = voteCount;
+      updatePrice();
+    }
+
+    function updateVotes() {
+      voteCount = Math.max(0, parseInt(voteInput.value) || 0);
+      voteInput.value = voteCount;
+      updatePrice();
+    }
+
+    function updatePrice() {
       priceEl.textContent = voteCount * 100;
     }
+
+    fetch('/submissions')
+      .then(res => res.json())
+      .then(entries => {
+        const entry = entries.find(e => e.id == contestantId);
+        if (entry) {
+          document.getElementById('contestant-name').textContent = entry.name;
+        } else {
+          document.getElementById('contestant-name').textContent = "Contestant not found";
+        }
+      });
 
     document.getElementById('voteForm').addEventListener('submit', async (e) => {
       e.preventDefault();
 
       const voterName = e.target.voterName.value;
       const message = e.target.message.value;
-      const contestantId = new URLSearchParams(window.location.search).get('id');
 
-      // TODO: Replace this with real payment integration
+      if (voteCount === 0) {
+        alert("Please enter at least one vote.");
+        return;
+      }
+
       alert(`Simulating payment of ₦${voteCount * 100}...`);
 
-      // After payment, send vote to server
       const res = await fetch('/submit-vote', {
-method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ voterName, message, voteCount, contestantId })
-});
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ voterName, message, voteCount, contestantId })
+      });
+
       if (res.ok) {
-        alert('✅ Thank you for voting!');
-        window.location.href = `/feed.html`;
+        confetti({
+          particleCount: 150,
+          spread: 70,
+          origin: { x: 0.5, y: 0.6 }
+        });
+
+        fetch(`/votes-count/${contestantId}`)
+          .then(res => res.json())
+          .then(data => {
+            const el = window.opener?.document.querySelector(`.vote-count[data-id="${contestantId}"]`);
+            if (el) el.textContent = data.votes;
+          });
+
+        setTimeout(() => {
+          window.location.href = `/feed.html#entry-${contestantId}`;
+        }, 1500);
       } else {
         alert('❌ Something went wrong. Please try again.');
       }

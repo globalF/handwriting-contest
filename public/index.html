@@ -1,30 +1,305 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Best Handwriting Contest</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Handwriting Contest – Home</title>
   <style>
+    html {
+      scroll-behavior: smooth;
+    }
+
     body {
+      margin: 0;
       font-family: Arial, sans-serif;
-      background-color: #f9f9f9;
-      text-align: center;
-      padding: 50px;
-    }
-    h1 {
-      color: #222;
-    }
-    .btn {
-      background-color: #007bff;
       color: white;
-      padding: 10px 20px;
+      background-color: #001d3f;
+    }
+
+    header {
+      background-color: #003366;
+      padding: 15px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 24px;
+      color: #ffffff;
+    }
+
+    nav a {
+      color: white;
+      text-decoration: none;
+      margin: 0 10px;
+      font-weight: bold;
+    }
+
+    nav a:hover {
+      color: yellow;
+    }
+
+    .hero {
+      position: relative;
+      text-align: center;
+      padding: 100px 20px;
+      color: white;
+      z-index: 1;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url('images/hero-bg.jpg');
+      background-size: cover;
+      background-position: center;
+      opacity: 0.3;
+      z-index: -1;
+    }
+
+    .hero .buttons a {
+      display: inline-block;
+      padding: 12px 24px;
+      margin: 10px;
+      border-radius: 5px;
+      font-weight: bold;
+      text-decoration: none;
+    }
+
+    .get-started {
+  background-color: #ffcc00;
+  color: #000;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.get-started:hover {
+  background-color: #003366;
+  color: #ffffff;
+}
+
+
+    .carousel-with-steps {
+      position: relative;
+      height: 400px;
+      overflow: hidden;
+    }
+
+    .carousel {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .slide {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background-size: cover;
+      background-position: center;
+      opacity: 0;
+      transition: opacity 1s ease-in-out;
+    }
+
+    .slide.active {
+      opacity: 1;
+    }
+
+    .steps-overlay {
+      position: relative;
+      z-index: 1;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      text-align: center;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 20px;
+    }
+
+    .steps-overlay h2 {
+      font-size: 28px;
+      margin-bottom: 30px;
+      font-weight: bold;
+    }
+
+    .steps-grid {
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .step-box {
+      background: rgba(255, 255, 255, 0.9);
+      color: #003366;
+      font-weight: bold;
+      font-size: 18px;
+      padding: 30px 20px;
+      width: 160px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      transition: transform 0.3s ease;
+    }
+
+    .step-box:hover {
+      transform: translateY(-5px);
+      background: #003366;
+      color: white;
+    }
+
+    .rules-section {
+      background: rgba(255, 255, 255, 0.95);
+      color: #333;
+      padding: 60px 20px;
+      max-width: 800px;
+      margin: auto;
+    }
+
+    .rules-section h2 {
+      color: #003366;
+      font-size: 28px;
+      margin-bottom: 20px;
+    }
+
+    .rules-section ul {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .rules-section li {
+      margin-bottom: 15px;
+      padding-left: 30px;
+      position: relative;
+    }
+
+    .rules-section li::before {
+      content: "📝";
+      position: absolute;
+      left: 0;
+      font-size: 20px;
+    }
+
+    .register-btn {
+      display: block;
+      margin: 30px auto 0;
+      padding: 12px 24px;
+      background: #ff4444;
+      color: white;
       text-decoration: none;
       border-radius: 5px;
+      font-weight: bold;
+      text-align: center;
+      width: fit-content;
+    }
+
+    footer {
+      background: #003366;
+      color: white;
+      text-align: center;
+      padding: 20px;
+      margin-top: 60px;
+    }
+
+    @media (max-width: 600px) {
+      .hero h2 {
+        font-size: 28px;
+      }
+
+      nav {
+        margin-top: 10px;
+        text-align: center;
+        width: 100%;
+      }
     }
   </style>
 </head>
+
 <body>
-  <h1>Welcome to the Best Handwriting Contest!</h1>
-  <p>Submit your best handwriting and win amazing prizes.</p>
-  <a href="/register.html" class="btn">Register Now</a>
+  <header>
+    <h1>Handwriting Contest</h1>
+    <nav>
+      <a href="/index.html">Home</a>
+      <a href="/feed.html">Feed</a>
+      <a href="/contact.html">Contact</a>
+      <a href="/sponsors.html">Sponsors</a>
+      <a href="/contest.html">Contest</a>
+      <a href="/submit.html">Submit</a>
+      <a href="/verify.html">Verify Receipt</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <h2>Welcome to the Handwriting Contest</h2>
+    <p>Show off your penmanship and compete for prizes. Submit your entry and vote for your favorites!</p>
+    <div class="buttons">
+      <a href="#rules" class="get-started">Get Started</a>
+    </div>
+  </section>
+
+  <div class="carousel-with-steps">
+    <div class="carousel">
+      <div class="slide active" style="background-image: url('images/write1.jpg');"></div>
+      <div class="slide" style="background-image: url('images/write2.jpg');"></div>
+      <div class="slide" style="background-image: url('images/write3.jpg');"></div>
+    </div>
+
+    <div class="steps-overlay">
+      <h2>Getting started in just 4 simple steps.</h2>
+      <div class="steps-grid">
+        <div class="step-box">Register</div>
+        <div class="step-box">Submit</div>
+        <div class="step-box">Get Approved</div>
+        <div class="step-box">Win</div>
+      </div>
+    </div>
+  </div>
+
+  <section id="rules" class="rules-section">
+    <h2>📜 Submission Rules</h2>
+    <ul>
+      <li>Each participant may submit only one handwriting sample.</li>
+      <li>Submissions must be original and written by hand — no digital fonts or tracing.</li>
+      <li>Entries must be clear, legible, and fit within the required size (half of A4).</li>
+      <li>Offensive, plagiarized, or inappropriate content will be disqualified.</li>
+      <li>Voting is open to the public, but duplicate or fraudulent votes will be removed.</li>
+      <li>Winners will be selected based on vote count and handwriting quality.</li>
+      <li>By submitting, you agree to allow your entry to be displayed publicly.</li>
+    </ul>
+    <a href="/submit.html" class="register-btn">Continue with Registration →</a>
+  </section>
+
+  <footer>
+    <p>&copy; 2025 Handwriting Contest. All rights reserved.</p>
+    <p>Contact us at: handwriting@contest.com</p>
+  </footer>
+
+  <!-- ✅ JavaScript placed at the end -->
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      let currentSlide = 0;
+      const slides = document.querySelectorAll('.slide');
+
+      setInterval(() => {
+        slides[currentSlide].classList.remove('active');
+        currentSlide = (currentSlide + 1) % slides.length;
+        slides[currentSlide].classList.add('active');
+      }, 4000);
+    });
+  </script>
 </body>
 </html>

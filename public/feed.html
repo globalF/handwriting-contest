@@ -2,52 +2,352 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Contest Feed – Vote Now</title>
   <style>
-    body { font-family: Arial; padding: 40px; background: #f9f9f9; }
-    .entry { margin-bottom: 30px; padding: 20px; background: white; border: 1px solid #ccc; }
-    img, video { max-width: 100%; height: auto; display: block; margin-bottom: 10px; }
-    button { padding: 6px 12px; }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background-image: url('images/hero-bg.jpg');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      color: #ffffff;
+    }
+
+    .share-menu {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+  justify-content: center;
+}
+
+.share-menu button {
+  padding: 6px 10px;
+  background: #444;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+.share-menu button:hover {
+  background: #007bff;
+}
+
+    .feed-overlay {
+      background: rgba(0, 0, 0, 0.7);
+      padding: 60px 20px;
+      max-width: 1000px;
+      margin: auto;
+      border-radius: 10px;
+    }
+
+    .feed-overlay h2 {
+      font-size: 32px;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .feed-overlay p {
+      font-size: 16px;
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    #top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 10px 0;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      margin-bottom: 30px;
+    }
+
+    #register-button {
+      padding: 10px 20px;
+      background: #28a745;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    #register-button:hover {
+      background: #218838;
+    }
+
+    #search {
+      flex: 1;
+      min-width: 200px;
+      max-width: 300px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      background: #ffffff;
+      color: #000000;
+      font-size: 14px;
+    }
+
+    #feed {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+   .entry {
+  background: rgba(0, 0, 0, 0.5); /* transparent dark overlay */
+  color: #ffffff;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  display: flex;
+  flex-direction: column;
+}
+
+
+    .entry img {
+      width: 100%;
+      max-height: 300px;
+      object-fit: contain;
+      border-radius: 5px;
+      margin-bottom: 10px;
+    }
+
+   .entry h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #00ffcc;
+}
+
+.entry p {
+  margin: 5px 0;
+  font-size: 14px;
+  color: #ddd;
+}
+
+
+    .entry .profile {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .entry .profile img {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 10px;
+      justify-content: center;
+    }
+
+    .actions a,
+    .actions button {
+      padding: 8px 12px;
+      background: #007bff;
+      color: white;
+      text-decoration: none;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .actions a:hover,
+    .actions button:hover {
+      background: #0056b3;
+    }
+
+    #popup {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    #popup img {
+      max-width: 90%;
+      max-height: 90%;
+      border-radius: 10px;
+      box-shadow: 0 0 10px black;
+      cursor: zoom-out;
+    }
+
+    .entry.voted {
+      border: 2px solid #28a745;
+      animation: flash 1s ease-in-out;
+    }
+
+    @keyframes flash {
+      0% { background: #e6ffe6; }
+      100% { background: white; }
+    }
+
+    @media (max-width: 600px) {
+      .feed-overlay h2 {
+        font-size: 24px;
+      }
+
+      #top-bar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      #search {
+        width: 100%;
+      }
+    }
   </style>
 </head>
 <body>
-  <h2>Vote for Your Favorite Entry</h2>
-  <div id="feed"></div>
+  <div class="feed-overlay">
+    <h2>Community Feed</h2>
+    <p>See all handwriting submissions and vote for your favorites.</p>
+
+    <div id="top-bar">
+      <a href="/index.html" id="register-button">Submit Handwriting!</a>
+      <input type="text" id="search" placeholder="Search by name or email" oninput="filterFeed()">
+    </div>
+
+    <div id="feed"></div>
+  </div>
+
+  <div id="popup" onclick="closePopup()">
+    <img id="popup-img" src="" alt="Zoomed image">
+  </div>
 
   <script>
-fetch('/submissions')
-  .then(res => res.json())
-  .then(data => {
-    const feed = document.getElementById('feed');
-    data.forEach((entry, index) => {
-      const card = document.createElement('div');
-      card.className = 'entry-card';
-      card.innerHTML = `
-        <h3>#${index + 1} – ${entry.name}</h3>
-        <p><strong>Votes:</strong> ${entry.votes}</p>
-        <img src="/uploads/${entry.handwriting}" width="100%" />
-        <video src="/uploads/${entry.video}" controls width="100%"></video>
-        <div class="actions">
-          <a href="/vote.html?id=${entry.id}">Vote</a>
-          <a href="/voters.html?id=${entry.id}">View Voters</a>
-          <button onclick="shareEntry(${entry.id}, '${entry.name}')">Share</button>
-        </div>
-      `;
-      feed.appendChild(card);
-    });
-  });
+    let allEntries = [];
+    fetch('/submissions')
+      .then(res => res.json())
+      .then(data => {
+        allEntries = data;
+        renderFeed(data);
 
-function shareEntry(id, name) {
+        const hash = window.location.hash;
+        if (hash.startsWith('#entry-')) {
+          setTimeout(() => {
+            const el = document.querySelector(hash);
+            if (el) {
+              el.classList.add('voted');
+              el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          }, 300);
+        }
+      });
+
+    function renderFeed(entries) {
+      const feed = document.getElementById('feed');
+      feed.innerHTML = '';
+      entries.forEach(entry => {
+        const card = document.createElement('div');
+        card.className = 'entry';
+        card.id = `entry-${entry.id}`;
+        card.innerHTML = `
+          <div class="profile">
+            <img src="/uploads/${entry.profile}" alt="${entry.name}">
+            <h3>${entry.name}</h3>
+          </div>
+          <p><strong>Votes:</strong> <span class="vote-count" data-id="${entry.id}">${entry.votes}</span></p>
+          <img src="/uploads/${entry.handwriting}" onclick="zoomImage(this.src)" />
+          <div class="actions">
+  <a href="/vote.html?id=${entry.id}">Vote</a>
+  <a href="/voters.html?id=${entry.id}">View Voters</a>
+  <button onclick="toggleShareMenu(${entry.id}, '${entry.name}')">Share</button>
+</div>
+<div class="share-menu" id="share-menu-${entry.id}" style="display: none;">
+  <button onclick="shareTo('whatsapp', ${entry.id}, '${entry.name}')">WhatsApp</button>
+  <button onclick="shareTo('facebook', ${entry.id}, '${entry.name}')">Facebook</button>
+  <button onclick="shareTo('twitter', ${entry.id}, '${entry.name}')">Twitter</button>
+  <button onclick="shareTo('copy', ${entry.id}, '${entry.name}')">Copy Link</button>
+</div>
+        `;
+        feed.appendChild(card);
+      });
+    }
+
+    function filterFeed() {
+      const query = document.getElementById('search').value.toLowerCase();
+      const filtered = allEntries.filter(entry =>
+        entry.name.toLowerCase().includes(query) ||
+        entry.email.toLowerCase().includes(query)
+      );
+      renderFeed(filtered);
+    }
+
+    function shareEntry(id, name) {
+      const url = `https://handwriting-contest.onrender.com/vote.html?id=${id}`;
+      const text = `Support ${name} in the handwriting contest! Cast your vote here: ${url}`;
+
+      if (navigator.share) {
+        navigator.share({ title: 'Vote Now', text, url });
+      } else {
+        navigator.clipboard.writeText(text);
+        alert('✅ Link copied! Share it with your friends.');
+      }
+    }
+
+    function zoomImage(src) {
+      const popup = document.getElementById('popup');
+      const popupImg = document.getElementById('popup-img');
+      popupImg.src = src;
+      popup.style.display = 'flex';
+    }
+
+    function closePopup() {
+      document.getElementById('popup').style.display = 'none';
+    }
+
+    setInterval(() => {
+      document.querySelectorAll('.vote-count').forEach(el => {
+        const id = el.getAttribute('data-id');
+        fetch(`/votes-count/${id}`)
+          .then(res => res.json())
+          .then(data => {
+            el.textContent = data.votes;
+          });
+      });
+    }, 30000);
+    function toggleShareMenu(id, name) {
+  const menu = document.getElementById(`share-menu-${id}`);
+  menu.style.display = menu.style.display === 'none' ? 'flex' : 'none';
+}
+
+function shareTo(platform, id, name) {
   const url = `https://handwriting-contest.onrender.com/vote.html?id=${id}`;
   const text = `Support ${name} in the handwriting contest! Cast your vote here: ${url}`;
 
-  if (navigator.share) {
-    navigator.share({ title: 'Vote Now', text, url });
-  } else {
+  if (platform === 'whatsapp') {
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+  } else if (platform === 'facebook') {
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
+  } else if (platform === 'twitter') {
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`, '_blank');
+  } else if (platform === 'copy') {
     navigator.clipboard.writeText(text);
     alert('✅ Link copied! Share it with your friends.');
   }
 }
-</script>
+
+  </script>
 </body>
 </html>
